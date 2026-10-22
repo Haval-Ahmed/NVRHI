@@ -26,6 +26,7 @@
 #include <nvrhi/common/misc.h>
 
 #include "d3d12-backend.h"
+#include <directx/dxgiformat.h>
 
 namespace nvrhi::d3d12
 {
@@ -665,7 +666,9 @@ namespace nvrhi::d3d12
                                           : UINT(D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(toD3D12ComponentMapping(componentMapping.r), toD3D12ComponentMapping(componentMapping.g),
                                                                                          toD3D12ComponentMapping(componentMapping.b), toD3D12ComponentMapping(componentMapping.a)));
 
-        uint32_t planeSlice = (viewDesc.Format == DXGI_FORMAT_X24_TYPELESS_G8_UINT) ? 1 : 0;
+        // Both D24S8 and D32S8 expose stencil on plane 1. Selecting plane 0 for
+        // the D32S8 stencil view creates an invalid SRV on D3D12.
+        const uint32_t planeSlice = (viewDesc.Format == DXGI_FORMAT_X24_TYPELESS_G8_UINT || viewDesc.Format == DXGI_FORMAT_X32_TYPELESS_G8X24_UINT) ? 1 : 0;
 
         switch (dimension)
         {
